@@ -2,20 +2,52 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from './Icon';
 import { Loader } from './Loader';
 import type { DesignVariation } from '../types';
+import { downloadHtml } from '../services/geminiService';
 
 interface AppliedPreviewProps {
   design: DesignVariation;
+  referenceHtml: string;
+  targetHtml: string;
   onRegenerate: () => void;
   isRegenerating: boolean;
 }
 
-export const AppliedPreview: React.FC<AppliedPreviewProps> = ({ design, onRegenerate, isRegenerating }) => {
-  const [isCopied, setIsCopied] = useState(false);
-  const [isIframeLoading, setIsIframeLoading] = useState(true);
+interface PreviewPaneProps {
+  title: string;
+  htmlContent: string;
+}
+
+const PreviewPane: React.FC<PreviewPaneProps> = ({ title, htmlContent }) => {
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsIframeLoading(true);
-  }, [design.html]);
+    setIsLoading(true);
+  }, [htmlContent]);
+  
+  return (
+    <div className="flex flex-col bg-gray-800 p-3 rounded-lg border border-gray-700/70 h-full">
+      <h4 className="text-sm font-semibold text-indigo-300 mb-3 text-center flex-shrink-0">{title}</h4>
+      <div className="flex-grow bg-gray-900 rounded-md overflow-hidden relative">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-xs">
+            Загрузка...
+          </div>
+        )}
+        <iframe
+          srcDoc={htmlContent}
+          title={title}
+          onLoad={() => setIsLoading(false)}
+          className={`w-full h-full border-none bg-white transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+          sandbox="allow-scripts"
+        />
+      </div>
+    </div>
+  );
+};
+
+
+export const AppliedPreview: React.FC<AppliedPreviewProps> = ({ design, referenceHtml, targetHtml, onRegenerate, isRegenerating }) => {
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(design.html).then(() => {
@@ -33,12 +65,11 @@ export const AppliedPreview: React.FC<AppliedPreviewProps> = ({ design, onRegene
         <h3 className="text-lg font-bold text-white">{design.name}</h3>
         <div className="flex items-center gap-4">
           <button
-            onClick={onRegenerate}
-            disabled={isRegenerating}
-            className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg shadow-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 bg-gray-600 hover:bg-gray-500 text-white focus:ring-gray-400 disabled:bg-gray-500 disabled:cursor-not-allowed w-36"
+            onClick={() => downloadHtml(design.html, design.name)}
+            className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg shadow-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 bg-gray-600 hover:bg-gray-500 text-white focus:ring-gray-400"
           >
-            {isRegenerating ? <Loader /> : <Icon name="wand" className="w-5 h-5" />}
-            {isRegenerating ? 'В работе...' : 'Перегенерировать'}
+             <Icon name="download" className="w-5 h-5" />
+             Скачать
           </button>
           <button
             onClick={handleCopyCode}
@@ -53,20 +84,10 @@ export const AppliedPreview: React.FC<AppliedPreviewProps> = ({ design, onRegene
           </button>
         </div>
       </header>
-      <main className="flex-grow bg-gray-800 rounded-lg overflow-hidden relative">
-        {isIframeLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-800 text-gray-400">
-            <Loader />
-            <p className="mt-4">Подождите, страница загружается...</p>
-          </div>
-        )}
-        <iframe
-          srcDoc={design.html}
-          title={design.name}
-          onLoad={() => setIsIframeLoading(false)}
-          className={`w-full h-full border-none bg-white transition-opacity duration-500 ${isIframeLoading ? 'opacity-0' : 'opacity-100'}`}
-          sandbox="allow-scripts"
-        />
+      <main className="flex-grow grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <PreviewPane title="Эталонный Дизайн" htmlContent={referenceHtml} />
+        <PreviewPane title="Целевая Страница (Оригинал)" htmlContent={targetHtml} />
+        <PreviewPane title="Результат" htmlContent={design.html} />
       </main>
     </div>
   );

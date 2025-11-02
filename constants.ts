@@ -1,3 +1,7 @@
+import type { GeminiModel } from './types';
+
+export const GEMINI_MODELS: GeminiModel[] = ['gemini-2.5-pro', 'gemini-2.5-flash'];
+
 export const DESIGN_STYLES: string[] = [
   'На усмотрение ИИ',
   'Современный',
