@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from './Icon';
+import { Loader } from './Loader';
 import type { DesignVariation } from '../types';
 
 interface FullScreenPreviewProps {
@@ -10,6 +11,11 @@ interface FullScreenPreviewProps {
 export const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ design, onClose }) => {
   const [isCopied, setIsCopied] = useState(false);
   const [view, setView] = useState<'desktop' | 'mobile'>('desktop');
+  const [isIframeLoading, setIsIframeLoading] = useState(true);
+
+  useEffect(() => {
+    setIsIframeLoading(true);
+  }, [design.html]);
 
   useEffect(() => {
     // Prevent background scrolling
@@ -39,7 +45,10 @@ export const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ design, on
   };
 
   const isDesktop = view === 'desktop';
-  const mobileIframeClasses = "w-[375px] h-[812px] max-w-full max-h-full border-none bg-white rounded-xl shadow-2xl border-2 border-gray-600 transition-all duration-300";
+  const mobileIframeClasses = "w-[375px] h-[812px] max-w-full max-h-full border-none bg-white rounded-xl shadow-2xl border-2 border-gray-600";
+  const mainClasses = isDesktop 
+    ? "flex-grow bg-gray-800 rounded-lg overflow-hidden relative" 
+    : "flex-grow flex justify-center items-center py-4 relative";
 
   return (
     <div
@@ -86,11 +95,18 @@ export const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ design, on
           </button>
         </div>
       </header>
-      <main className={isDesktop ? "flex-grow bg-white rounded-lg overflow-hidden" : "flex-grow flex justify-center items-center py-4"}>
+      <main className={mainClasses}>
+        {isIframeLoading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-800 text-gray-400 z-10">
+            <Loader />
+            <p className="mt-4">Подождите, страница загружается...</p>
+          </div>
+        )}
         <iframe
           srcDoc={design.html}
           title={design.name}
-          className={isDesktop ? "w-full h-full border-none" : mobileIframeClasses}
+          onLoad={() => setIsIframeLoading(false)}
+          className={`${isDesktop ? "w-full h-full border-none" : mobileIframeClasses} bg-white transition-opacity duration-500 ${isIframeLoading ? 'opacity-0' : 'opacity-100'}`}
           sandbox="allow-scripts"
         />
       </main>

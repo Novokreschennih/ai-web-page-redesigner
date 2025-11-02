@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from './Icon';
 
 interface PreviewCardProps {
@@ -9,6 +9,11 @@ interface PreviewCardProps {
 
 export const PreviewCard: React.FC<PreviewCardProps> = ({ title, htmlContent, onClick }) => {
   const [view, setView] = useState<'desktop' | 'mobile'>('desktop');
+  const [isIframeLoading, setIsIframeLoading] = useState(true);
+
+  useEffect(() => {
+    setIsIframeLoading(true);
+  }, [htmlContent]);
 
   const isDesktop = view === 'desktop';
   const paddingTop = isDesktop ? '75%' : '177.77%'; // 4:3 vs 9:16 portrait
@@ -17,6 +22,7 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({ title, htmlContent, on
     width: `${100 / scale}%`,
     height: `${100 / scale}%`,
     transform: `scale(${scale})`,
+    opacity: isIframeLoading ? 0 : 1,
   };
 
   return (
@@ -48,10 +54,16 @@ export const PreviewCard: React.FC<PreviewCardProps> = ({ title, htmlContent, on
       </div>
       <div className="w-full bg-gray-900 rounded-md overflow-hidden pointer-events-none">
         <div className="w-full relative transition-all duration-300" style={{ paddingTop }}>
+           {isIframeLoading && (
+            <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-xs text-center p-2">
+              <span>Загрузка превью...</span>
+            </div>
+          )}
            <iframe
             srcDoc={htmlContent}
             title={title}
-            className="absolute top-0 left-0 border-none bg-white transform origin-top-left"
+            onLoad={() => setIsIframeLoading(false)}
+            className="absolute top-0 left-0 border-none bg-white transform origin-top-left transition-opacity duration-300"
             style={iframeStyle}
             sandbox="allow-scripts"
           />

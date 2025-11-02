@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from './Icon';
 import { Loader } from './Loader';
 import type { DesignVariation } from '../types';
@@ -11,6 +11,11 @@ interface AppliedPreviewProps {
 
 export const AppliedPreview: React.FC<AppliedPreviewProps> = ({ design, onRegenerate, isRegenerating }) => {
   const [isCopied, setIsCopied] = useState(false);
+  const [isIframeLoading, setIsIframeLoading] = useState(true);
+
+  useEffect(() => {
+    setIsIframeLoading(true);
+  }, [design.html]);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(design.html).then(() => {
@@ -48,11 +53,18 @@ export const AppliedPreview: React.FC<AppliedPreviewProps> = ({ design, onRegene
           </button>
         </div>
       </header>
-      <main className="flex-grow bg-white rounded-lg overflow-hidden">
+      <main className="flex-grow bg-gray-800 rounded-lg overflow-hidden relative">
+        {isIframeLoading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-800 text-gray-400">
+            <Loader />
+            <p className="mt-4">Подождите, страница загружается...</p>
+          </div>
+        )}
         <iframe
           srcDoc={design.html}
           title={design.name}
-          className="w-full h-full border-none"
+          onLoad={() => setIsIframeLoading(false)}
+          className={`w-full h-full border-none bg-white transition-opacity duration-500 ${isIframeLoading ? 'opacity-0' : 'opacity-100'}`}
           sandbox="allow-scripts"
         />
       </main>
