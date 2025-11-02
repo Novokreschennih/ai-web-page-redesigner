@@ -1,14 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { DesignVariation, GeminiModel } from "../types";
 
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
-
 const singleDesignResponseSchema = {
   type: Type.OBJECT,
   properties: {
@@ -19,7 +11,8 @@ const singleDesignResponseSchema = {
 };
 
 
-export const generateSingleDesign = async (code: string, style: string, variationIndex: number, model: GeminiModel): Promise<DesignVariation> => {
+export const generateSingleDesign = async (code: string, style: string, variationIndex: number, model: GeminiModel, apiKey: string): Promise<DesignVariation> => {
+    const ai = new GoogleGenAI({ apiKey });
     const basePrompt = `
     You are an expert UI/UX designer and senior frontend developer specializing in rapid prototyping and modern aesthetics.
     Your task is to take the user's provided HTML code and completely redesign it based on a specified style. You must generate ONE high-quality, unique variation.
@@ -83,7 +76,8 @@ export const generateSingleDesign = async (code: string, style: string, variatio
   }
 };
 
-export const applyDesign = async (referenceHtml: string, targetHtml: string, model: GeminiModel): Promise<DesignVariation> => {
+export const applyDesign = async (referenceHtml: string, targetHtml: string, model: GeminiModel, apiKey: string): Promise<DesignVariation> => {
+  const ai = new GoogleGenAI({ apiKey });
   const prompt = `
     You are a world-class AI assistant, acting as a senior UI/UX designer and frontend developer.
     Your task is to expertly transfer the visual design from a 'Reference HTML' to a new 'Target HTML' structure.
@@ -134,7 +128,8 @@ export const applyDesign = async (referenceHtml: string, targetHtml: string, mod
   }
 };
 
-export const refineDesign = async (originalHtml: string, instruction: string, model: GeminiModel): Promise<DesignVariation> => {
+export const refineDesign = async (originalHtml: string, instruction: string, model: GeminiModel, apiKey: string): Promise<DesignVariation> => {
+  const ai = new GoogleGenAI({ apiKey });
   const prompt = `
   You are an expert UI/UX designer. Your task is to refine an existing HTML design based on a user's instruction.
 

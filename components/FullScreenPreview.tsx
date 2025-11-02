@@ -8,9 +8,10 @@ interface FullScreenPreviewProps {
   design: DesignVariation;
   onClose: () => void;
   model: GeminiModel;
+  apiKey: string | null;
 }
 
-export const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ design, onClose, model }) => {
+export const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ design, onClose, model, apiKey }) => {
   const [currentDesign, setCurrentDesign] = useState<DesignVariation>(design);
   const [isCopied, setIsCopied] = useState(false);
   const [view, setView] = useState<'desktop' | 'mobile'>('desktop');
@@ -48,10 +49,14 @@ export const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ design, on
 
   const handleRefine = useCallback(async () => {
     if (!refinement.trim()) return;
+    if (!apiKey) {
+      setRefineError("Ключ API не найден.");
+      return;
+    }
     setIsRefining(true);
     setRefineError(null);
     try {
-      const newDesign = await refineDesign(currentDesign.html, refinement, model);
+      const newDesign = await refineDesign(currentDesign.html, refinement, model, apiKey);
       setCurrentDesign(newDesign);
       setRefinement('');
     } catch (err) {
@@ -60,7 +65,7 @@ export const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ design, on
     } finally {
       setIsRefining(false);
     }
-  }, [refinement, currentDesign.html, model]);
+  }, [refinement, currentDesign.html, model, apiKey]);
 
   const isDesktop = view === 'desktop';
   const mobileIframeClasses = "w-[375px] h-[812px] max-w-full max-h-full border-none bg-white rounded-xl shadow-2xl border-2 border-gray-600";
@@ -113,7 +118,7 @@ export const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ design, on
                     placeholder="Например: 'Сделай кнопки круглыми' или 'Используй более теплую цветовую гамму'"
                     className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
                 />
-                <button onClick={handleRefine} disabled={isRefining || !refinement.trim()} className="flex items-center justify-center gap-2 px-4 py-2 w-40 text-sm font-semibold rounded-lg shadow-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed">
+                <button onClick={handleRefine} disabled={isRefining || !refinement.trim() || !apiKey} className="flex items-center justify-center gap-2 px-4 py-2 w-40 text-sm font-semibold rounded-lg shadow-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed">
                     {isRefining ? <Loader/> : <Icon name="rocket" className="w-5 h-5" />}
                     {isRefining ? 'Улучшаю...' : 'Улучшить'}
                 </button>

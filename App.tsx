@@ -14,6 +14,53 @@ import type { DesignVariation, GeminiModel, HistoryItem } from './types';
 type Tab = 'redesign' | 'apply';
 type AsideTab = 'controls' | 'history';
 
+// INLINED COMPONENT: ApiKeyModal
+const ApiKeyModal: React.FC<{ isOpen: boolean; onSave: (key: string) => void; }> = ({ isOpen, onSave }) => {
+  const [localApiKey, setLocalApiKey] = useState('');
+
+  if (!isOpen) return null;
+
+  const handleSave = () => {
+    if (localApiKey.trim()) {
+      onSave(localApiKey.trim());
+      setLocalApiKey('');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-700 max-w-lg w-full text-center">
+        <Icon name="logo" className="w-12 h-12 text-indigo-400 mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-white mb-2">Требуется ключ Gemini API</h2>
+        <p className="text-gray-400 mb-6">
+          Чтобы использовать это приложение, вставьте свой ключ Google Gemini API. Он будет сохранен локально в вашем браузере.
+        </p>
+        <div className="flex flex-col gap-4">
+          <input
+            type="password"
+            value={localApiKey}
+            onChange={(e) => setLocalApiKey(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+            placeholder="Введите ваш ключ API..."
+            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+          />
+          <button
+            onClick={handleSave}
+            disabled={!localApiKey.trim()}
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-all"
+          >
+            Сохранить и начать
+          </button>
+        </div>
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-sm text-indigo-400 hover:text-indigo-300 mt-6 inline-block">
+          Получить ключ API в Google AI Studio &rarr;
+        </a>
+      </div>
+    </div>
+  );
+};
+
+
 // INLINED COMPONENT: ModelSelector
 const ModelSelector: React.FC<{ selectedModel: GeminiModel; onModelChange: (model: GeminiModel) => void; }> = ({ selectedModel, onModelChange }) => (
   <div className="flex flex-col gap-2">
@@ -51,6 +98,8 @@ const HistoryPanel: React.FC<{ history: HistoryItem[], onRestore: (item: History
 
 
 const App: React.FC = () => {
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [code, setCode] = useState<string>(INITIAL_CODE);
   const [targetCode, setTargetCode] = useState<string>(INITIAL_TARGET_CODE);
   const [style, setStyle] = useState<string>(DESIGN_STYLES[0]);
@@ -66,15 +115,32 @@ const App: React.FC = () => {
 
   useEffect(() => {
     try {
+      const storedKey = localStorage.getItem('geminiApiKey');
+      if (storedKey) {
+        setApiKey(storedKey);
+      } else {
+        setIsApiKeyModalOpen(true);
+      }
+      
       const storedHistory = localStorage.getItem('designHistory');
       if (storedHistory) {
         setHistory(JSON.parse(storedHistory));
       }
     } catch (e) {
-      console.error("Failed to load history from localStorage", e);
-      setHistory([]);
+      console.error("Failed to load from localStorage", e);
     }
   }, []);
+  
+  const handleSaveApiKey = (key: string) => {
+    setApiKey(key);
+    try {
+      localStorage.setItem('geminiApiKey', key);
+    } catch (e) {
+       console.error("Failed to save API key to localStorage", e);
+       setError("Could not save API Key. LocalStorage might be full or disabled.");
+    }
+    setIsApiKeyModalOpen(false);
+  };
 
   const saveHistory = (newHistory: HistoryItem[]) => {
     try {
@@ -85,6 +151,11 @@ const App: React.FC = () => {
   };
 
   const handleGenerateClick = useCallback(async () => {
+    if (!apiKey) {
+      setError("Ключ Gemini API не установлен.");
+      setIsApiKeyModalOpen(true);
+      return;
+    }
     if (!code.trim()) {
       setError("Пожалуйста, вставьте HTML-код.");
       return;
@@ -93,7 +164,7 @@ const App: React.FC = () => {
     setError(null);
     setGeneratedDesigns([]);
 
-    const designPromises = [1, 2, 3].map(i => generateSingleDesign(code, style, i, selectedModel));
+    const designPromises = [1, 2, 3].map(i => generateSingleDesign(code, style, i, selectedModel, apiKey));
     
     const successfulDesigns: DesignVariation[] = [];
 
@@ -128,9 +199,14 @@ const App: React.FC = () => {
       setHistory(updatedHistory);
       saveHistory(updatedHistory);
     }
-  }, [code, style, selectedModel, history]);
+  }, [code, style, selectedModel, history, apiKey]);
   
   const handleApplyDesignClick = useCallback(async () => {
+    if (!apiKey) {
+      setError("Ключ Gemini API не установлен.");
+      setIsApiKeyModalOpen(true);
+      return;
+    }
     if (!code.trim() || !targetCode.trim()) {
       setError("Пожалуйста, предоставьте HTML-код для эталона и для цели.");
       return;
@@ -140,7 +216,7 @@ const App: React.FC = () => {
     setAppliedDesign(null);
 
     try {
-      const design = await applyDesign(code, targetCode, selectedModel);
+      const design = await applyDesign(code, targetCode, selectedModel, apiKey);
       setAppliedDesign(design);
     } catch (err) {
       console.error(err);
@@ -148,7 +224,7 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [code, targetCode, selectedModel]);
+  }, [code, targetCode, selectedModel, apiKey]);
 
   const handlePrimaryAction = () => {
     if (activeTab === 'redesign') {
@@ -173,6 +249,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 font-sans flex flex-col">
+      <ApiKeyModal isOpen={isApiKeyModalOpen} onSave={handleSaveApiKey} />
       <Header />
       <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8 flex flex-col lg:flex-row gap-8">
         <aside className="w-full lg:w-1/3 xl:w-1/4 flex flex-col gap-6">
@@ -189,7 +266,7 @@ const App: React.FC = () => {
           )}
 
           {asideTab === 'controls' ? (
-            <>
+            <div className="flex flex-col gap-6">
               {activeTab === 'redesign' ? (
                 <>
                   <h2 className="text-xl font-bold text-gray-300">Управление</h2>
@@ -205,10 +282,13 @@ const App: React.FC = () => {
                   <CodeInput label="HTML целевой страницы" id="targetCode" value={targetCode} onChange={setTargetCode} />
                 </>
               )}
-               <button onClick={handlePrimaryAction} disabled={isLoading} className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
-                {isLoading ? (<><Loader />Обработка...</>) : (<><Icon name={primaryButtonIcon} />{primaryButtonText}</>)}
+              <div className="flex flex-col gap-4">
+               <button onClick={handlePrimaryAction} disabled={isLoading || !apiKey} className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                {isLoading ? (<><Loader />Обработка...</>) : (apiKey ? <><Icon name={primaryButtonIcon} />{primaryButtonText}</> : 'Введите API ключ')}
               </button>
-            </>
+               <button onClick={() => setIsApiKeyModalOpen(true)} className="text-center text-xs text-gray-500 hover:text-gray-400 transition-colors">Изменить API ключ</button>
+              </div>
+            </div>
           ) : (
             <HistoryPanel history={history} onRestore={handleRestoreHistory} />
           )}
@@ -218,7 +298,7 @@ const App: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-300">{activeTab === 'redesign' ? 'Сгенерированные превью' : 'Превью примененного дизайна'}</h2>
             {activeTab === 'redesign' && !isLoading && generatedDesigns.length > 0 && (
-              <button onClick={handleGenerateClick} className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg shadow-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 bg-gray-600 hover:bg-gray-500 text-white focus:ring-gray-400"><Icon name="refresh" className="w-5 h-5" />Перегенерировать</button>
+              <button onClick={handleGenerateClick} disabled={!apiKey} className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg shadow-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 bg-gray-600 hover:bg-gray-500 text-white focus:ring-gray-400 disabled:bg-gray-500 disabled:cursor-not-allowed"><Icon name="refresh" className="w-5 h-5" />Перегенерировать</button>
             )}
           </div>
           <div className="flex-grow p-4 bg-gray-800/50 rounded-lg border border-gray-700/50 min-h-[60vh]">
@@ -258,7 +338,7 @@ const App: React.FC = () => {
       </main>
 
       {selectedDesign && (
-        <FullScreenPreview design={selectedDesign} onClose={() => setSelectedDesign(null)} model={selectedModel}/>
+        <FullScreenPreview design={selectedDesign} onClose={() => setSelectedDesign(null)} model={selectedModel} apiKey={apiKey} />
       )}
     </div>
   );
