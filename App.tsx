@@ -229,9 +229,10 @@ const App: React.FC = () => {
             
             {activeTab === 'redesign' && !error && (
               <>
-                {(generatedDesigns.length === 0 && !isLoading) ? (
+                {generatedDesigns.length === 0 && !isLoading && (
                   <div className="flex flex-col items-center justify-center h-full text-center text-gray-500"><Icon name="palette" className="w-16 h-16 mb-4" /><p className="font-semibold text-lg">Ваши новые дизайны появятся здесь</p><p>Вставьте HTML, выберите стиль и нажмите 'Сгенерировать'.</p></div>
-                ) : (
+                )}
+                {generatedDesigns.length > 0 && (
                   <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full">
                     {generatedDesigns.map((design, index) => (<PreviewCard key={index} title={design.name} htmlContent={design.html} onClick={() => setSelectedDesign(design)}/>))}
                     {isLoading && generatedDesigns.length < 3 && Array.from({ length: 3 - generatedDesigns.length }).map((_, i) => (
