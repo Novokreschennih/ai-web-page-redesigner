@@ -1,0 +1,5 @@
+{
+  "name": "AI Web Page Redesigner",
+  "description": "An application that takes HTML code and generates three new design variations using AI. Users can select a style like 'modern' or 'minimalist' to guide the redesign process.",
+  "requestFramePermissions": []
+}
