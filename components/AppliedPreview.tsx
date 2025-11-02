@@ -1,32 +1,16 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Icon } from './Icon';
+import { Loader } from './Loader';
 import type { DesignVariation } from '../types';
 
-interface FullScreenPreviewProps {
+interface AppliedPreviewProps {
   design: DesignVariation;
-  onClose: () => void;
+  onRegenerate: () => void;
+  isRegenerating: boolean;
 }
 
-export const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ design, onClose }) => {
+export const AppliedPreview: React.FC<AppliedPreviewProps> = ({ design, onRegenerate, isRegenerating }) => {
   const [isCopied, setIsCopied] = useState(false);
-
-  useEffect(() => {
-    // Prevent background scrolling
-    document.body.style.overflow = 'hidden';
-    // Close on escape key press
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = 'auto';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [onClose]);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(design.html).then(() => {
@@ -39,14 +23,18 @@ export const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ design, on
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex flex-col p-4 sm:p-6 lg:p-8 transition-opacity duration-300"
-      aria-modal="true"
-      role="dialog"
-    >
+    <div className="w-full h-full flex flex-col">
       <header className="flex-shrink-0 flex items-center justify-between pb-4 mb-4 border-b border-gray-700">
-        <h2 className="text-xl sm:text-2xl font-bold text-white">{design.name}</h2>
+        <h3 className="text-lg font-bold text-white">{design.name}</h3>
         <div className="flex items-center gap-4">
+          <button
+            onClick={onRegenerate}
+            disabled={isRegenerating}
+            className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg shadow-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 bg-gray-600 hover:bg-gray-500 text-white focus:ring-gray-400 disabled:bg-gray-500 disabled:cursor-not-allowed w-36"
+          >
+            {isRegenerating ? <Loader /> : <Icon name="wand" className="w-5 h-5" />}
+            {isRegenerating ? 'В работе...' : 'Перегенерировать'}
+          </button>
           <button
             onClick={handleCopyCode}
             className={`flex items-center justify-center gap-2 px-4 py-2 w-36 text-sm font-semibold rounded-lg shadow-sm transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 ${
@@ -57,13 +45,6 @@ export const FullScreenPreview: React.FC<FullScreenPreviewProps> = ({ design, on
           >
             <Icon name={isCopied ? 'check' : 'copy'} className="w-5 h-5" />
             {isCopied ? 'Скопировано!' : 'Копировать код'}
-          </button>
-          <button
-            onClick={onClose}
-            aria-label="Закрыть предпросмотр"
-            className="p-2 rounded-full text-gray-400 bg-gray-800 hover:bg-gray-700 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-white"
-          >
-            <Icon name="close" className="w-6 h-6" />
           </button>
         </div>
       </header>

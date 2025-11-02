@@ -1,5 +1,5 @@
 {
-  "name": "AI Web Page Redesigner",
-  "description": "An application that takes HTML code and generates three new design variations using AI. Users can select a style like 'modern' or 'minimalist' to guide the redesign process.",
+  "name": "AI Редизайнер Веб-страниц",
+  "description": "Приложение, которое принимает HTML-код и генерирует три новых варианта дизайна с помощью ИИ. Пользователи могут выбрать стиль, например, 'современный' или 'минималистичный', чтобы направить процесс редизайна.",
   "requestFramePermissions": []
 }

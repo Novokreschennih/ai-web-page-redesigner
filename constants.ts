@@ -1,14 +1,14 @@
-
 export const DESIGN_STYLES: string[] = [
-  'Modern',
-  'Minimalist',
-  'Brutalist',
-  'Corporate',
-  'Playful',
-  'Neumorphic',
-  'Glassmorphism',
-  'Cyberpunk',
-  'Vintage',
+  'На усмотрение ИИ',
+  'Современный',
+  'Минималистичный',
+  'Брутализм',
+  'Корпоративный',
+  'Игривый',
+  'Неоморфизм',
+  'Глассморфизм',
+  'Киберпанк',
+  'Винтаж',
 ];
 
 export const INITIAL_CODE = `<!DOCTYPE html>
@@ -42,6 +42,44 @@ export const INITIAL_CODE = `<!DOCTYPE html>
         
         <button onclick="alert('Thanks for your interest!')">Learn More</button>
     </div>
+</body>
+</html>
+`;
+
+export const INITIAL_TARGET_CODE = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Our Company</title>
+</head>
+<body>
+    <header>
+        <h1>About Us</h1>
+        <nav>
+            <a href="#">Home</a>
+            <a href="#">Services</a>
+            <a href="#">Contact</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Our Mission</h2>
+            <p>To deliver excellence and innovation in everything we do. We strive to create value for our customers and stakeholders.</p>
+        </section>
+        <section>
+            <h2>Our Team</h2>
+            <p>We are a diverse team of passionate professionals dedicated to achieving our goals.</p>
+            <ul>
+                <li>Jane Doe - CEO</li>
+                <li>John Smith - CTO</li>
+                <li>Emily White - Lead Designer</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Our Company. All rights reserved.</p>
+    </footer>
 </body>
 </html>
 `;

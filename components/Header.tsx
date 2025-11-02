@@ -9,7 +9,7 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-3">
           <Icon name="logo" className="w-8 h-8 text-indigo-400" />
           <h1 className="text-2xl font-bold tracking-tight text-white">
-            AI Web Page Redesigner
+            AI Редизайнер Веб-страниц
           </h1>
         </div>
       </div>

@@ -12,7 +12,7 @@ export const StyleSelector: React.FC<StyleSelectorProps> = ({ selectedStyle, onS
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor="styleSelector" className="font-medium text-gray-400">
-        Choose a Design Style
+        Выберите стиль дизайна
       </label>
       <div className="relative">
         <select

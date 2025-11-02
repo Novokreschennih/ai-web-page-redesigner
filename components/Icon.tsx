@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface IconProps {
@@ -48,6 +47,16 @@ export const Icon: React.FC<IconProps> = ({ name, className = 'w-6 h-6' }) => {
         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
       </svg>
     ),
+    wand: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 004.472-.948.75.75 0 01.82.162l3.192 3.192a.75.75 0 01-.529 1.28l-3.878.862a1.875 1.875 0 01-1.636-.529l-1.85-1.85-1.85 1.85a1.875 1.875 0 01-2.652 0l-3.192-3.192a1.875 1.875 0 010-2.652l1.85-1.85-1.85-1.85a1.875 1.875 0 01.529-1.636l.862-3.878a.75.75 0 011.28-.529L9.528 1.718z" />
+      </svg>
+    ),
+    refresh: (
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-4.991-2.696L7.985 5.985m0 0v4.992m0 0h4.992m0 0l3.181-3.183a8.25 8.25 0 0111.664 0l3.181 3.183" />
+      </svg>
+    )
   };
 
   return <div className={className}>{icons[name]}</div>;
